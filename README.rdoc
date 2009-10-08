@@ -1,0 +1,96 @@
+= vlad-verbatim
+
+Remote Configuration Support for Vlad using Front Matter and ERB templates.
+
+NOTE: Nothing to really do here yet.  Still WIP...
+
+== Description
+
+This allows you to define ERB files that will get sync'd with your
+remote servers.  It also adds a config task (vlad:verbatim).
+
+== Setup
+
+In your Rakefile...
+
+  begin
+    require 'vlad'
+    require 'vlad-verbatim'
+    Vlad.load
+  rescue LoadError
+    # do nothing
+  end
+
+Create a directory ./config/target, this represents the root of
+the target machine.  Files ending in .erb will be evaluated and
+be written to on the target.  For example...
+
+  ./config/target/etc/php.ini.erb     => /etc/php.ini (on target)
+  ./config/target/init.d/postfix.erb  => /init.d/postfix
+
+NOTE: If you don't want ./config/target, you can set Vlad::Verbatim::TEMPLATE_PATH
+to something else before requiring vlad-verbatim (in your Rakefile).
+
+
+== Front Matter
+
+As seen in Jekyll [ http://jekyllrb.com ], this uses the front-matter
+concept.  Start each file with a YAML section, bounded by a "---".
+The special values are 'owner' and 'mode', for setting the ownership
+of the file and mode.
+
+  ---
+  owner: www-data
+  mode: 0700
+  ---
+  ...rest of file...
+
+There is no default owner, it will be the vlad deploy user.  The mode will also
+be the default 0700 (I think?).
+
+== Variables and Methods in the ERB Templates
+
+Anything in the Vlad::Verbatim namespace will be available in the template
+files.  You could add this to a ./config/deploy.rb file (for example):
+
+  Vlad::Verbatim::SERVER_NAME = 'admin.localhost'
+
+  class Vlad::Verbatim
+    def booga_booga
+      'booga'
+    end
+  end
+
+Then in the target templates, you could access like so:
+
+  <VirtualHost *:80>
+    ServerName <%= SERVER_NAME %>
+    LogFile /var/log/<%= booga_booga %>
+  </VirtualHost>
+
+== Tasks
+
+You have these at your fingertips:
+
+* rake vlad:verbatim
+* rake vlad:verbatim:check
+
+== Resources
+
+* http://hitsquad.rubyforge.org/vlad/
+* http://www.ruby-doc.org/stdlib/libdoc/erb/rdoc/index.html
+* http://jekyllrb.com
+
+== Note on Patches/Pull Requests
+ 
+* Fork the project.
+* Make your feature addition or bug fix.
+* Add tests for it. This is important so I don't break it in a
+  future version unintentionally.
+* Commit, do not mess with rakefile, version, or history.
+  (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
+* Send me a pull request. Bonus points for topic branches.
+
+== Copyright
+
+Copyright (c) 2009 Brian Kaney. See LICENSE for details.
